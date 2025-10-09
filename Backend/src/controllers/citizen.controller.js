@@ -130,11 +130,37 @@ const citizenLogin = asyncHandler( async (req,res)=>{
             "User Logged In successful"
         )
     )
+})
 
+const citizenLogout = asyncHandler(async (req,res)=>{
+    await Citizen.findByIdAndUpdate(
+        req.citizen._id,
+        {
+            $set : {
+                refreshToken : undefined
+            }
+        },
+        {
+            new : true
+        }
+    )
 
+    const options = {
+        httpOnly : true,
+        secure : true
+    }
+
+    return res
+    .status(200)
+    .clearCookie("accessToken",options)
+    .clearCookie("refreshToken",options)
+    .json(
+        new apiResponse(200,{},"Citizen Logged Out Successfully..")
+    )
 })
 
 export {
     citizenRegister,
-    citizenLogin
+    citizenLogin,
+    citizenLogout
 }
