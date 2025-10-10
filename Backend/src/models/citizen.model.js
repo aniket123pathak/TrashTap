@@ -5,12 +5,12 @@ import jwt from "jsonwebtoken"
 
 const citizenSchema = new Schema ({
     email: {
-      type: String,
-      required: true,
-      unique: true,
-      lowercase: true,
-      trim: true,
-      index:true
+        type: String,
+        required: true,
+        unique: true,
+        lowercase: true,
+        trim: true,
+        index:true
     },
     phoneNumber : {
         type : Number,
@@ -19,10 +19,10 @@ const citizenSchema = new Schema ({
         index:true
     },
     fullName: {
-      type: String,
-      required: true,
-      trim: true,
-      index: true,
+        type: String,
+        required: true,
+        trim: true,
+        index: true,
     },
     city : {
         type : String,
@@ -36,11 +36,11 @@ const citizenSchema = new Schema ({
         trim:true 
     },
     password: {
-      type: String,
-      required: [true, "Password is required"],
+        type: String,
+        required: [true, "Password is required"],
     },
     refreshToken: {
-      type: String,
+        type: String,
     },
 },{timestamps:true})
 
