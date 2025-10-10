@@ -28,7 +28,7 @@ const generateAccessAndRefreshToken = async (id) => {
 
         worker.refreshToken = refreshToken
 
-        await worker.save({validateBeforeSave:true})
+        await worker.save({validateBeforeSave:false})
         return { accessToken , refreshToken }
     } catch (error) {
         throw new apiError(500,"something went wrong while generating the Access and refresh token")
