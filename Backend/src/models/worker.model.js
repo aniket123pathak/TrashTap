@@ -45,6 +45,7 @@ workerSchema.pre("save",async function (next) {
         return next();
     }
     this.password = await bcrypt.hash(this.password,10)
+    next()
 })
 
 workerSchema.methods.isPasswordCorrect = async function (password){

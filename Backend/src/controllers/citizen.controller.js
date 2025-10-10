@@ -19,6 +19,21 @@ import { Citizen } from "../models/citizen.model.js"
 // --- Server Errors ---
 // 500: Internal Server Error - Server-side issue
 
+const generateAccessAndRefreshToken = async (id) => {
+    try {
+        const citizen = await Citizen.findById(id)
+
+        const accessToken = citizen.generateAccessToken()
+        const refreshToken = citizen.generateRefreshToken()
+
+        citizen.refreshToken = refreshToken
+
+        await citizen.save({validateBeforeSave:true})
+        return { accessToken , refreshToken }
+    } catch (error) {
+        throw new apiError(500,"something went wrong while generating the Access and refresh token")
+    }
+}
 
 const citizenRegister = asyncHandler ( async (req,res) => {
     const {email,fullName,phoneNumber,city,pincode,password} = req.body
@@ -72,6 +87,80 @@ const citizenRegister = asyncHandler ( async (req,res) => {
 
 })
 
+const citizenLogin = asyncHandler( async (req,res)=>{
+    const{ phoneNumber , email , password} = req.body
+
+    if(!email && !phoneNumber){
+        throw new apiError(400,"Enter the Phone Number or email..")
+    }
+
+    const citizen = await Citizen.findOne({
+        $or:[{email},{phoneNumber}]
+    })
+
+    if(!citizen){
+        throw new apiError(404,"User Not Found..check Credentials or new Register First..")
+    }
+
+    const isPasswordValid = await citizen.isPasswordCorrect(password)
+
+    if(!isPasswordValid){
+        throw new apiError(400,"Invalid Password")
+    }
+
+    const { accessToken , refreshToken } = await generateAccessAndRefreshToken(citizen._id)
+
+    const loggedInCitizen = await Citizen.findById(citizen._id).select("-password -refreshToken")
+
+    const options = {
+        httpOnly : true,
+        secure : true
+    }
+
+    return res
+    .status(200)
+    .cookie("accessToken",accessToken,options)
+    .cookie("refreshToken",refreshToken,options)
+    .json(
+        new apiResponse(
+            200,
+            {
+                citizen : loggedInCitizen , refreshToken , accessToken
+            },
+            "User Logged In successful"
+        )
+    )
+})
+
+const citizenLogout = asyncHandler(async (req,res)=>{
+    await Citizen.findByIdAndUpdate(
+        req.citizen._id,
+        {
+            $set : {
+                refreshToken : undefined
+            }
+        },
+        {
+            new : true
+        }
+    )
+
+    const options = {
+        httpOnly : true,
+        secure : true
+    }
+
+    return res
+    .status(200)
+    .clearCookie("accessToken",options)
+    .clearCookie("refreshToken",options)
+    .json(
+        new apiResponse(200,{},"Citizen Logged Out Successfully..")
+    )
+})
+
 export {
-    citizenRegister
+    citizenRegister,
+    citizenLogin,
+    citizenLogout
 }

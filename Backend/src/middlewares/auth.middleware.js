@@ -13,13 +13,13 @@ export const verifyJWT = asyncHandler ( async (req,_,next)=>{
 
         const decodedToken = jwt.verify(token,process.env.ACCESS_TOKEN_SECRET)
 
-        const user = Citizen.findById(decodedToken._id).select("-password -refreshToken")
+        const citizen = Citizen.findById(decodedToken._id).select("-password -refreshToken")
 
-        if(!user){
+        if(!citizen){
             throw new apiError(401,"Invalid Access Token");
         }
 
-        req.user = user;
+        req.citizen = citizen;
         next();
 
     } catch (error) {
