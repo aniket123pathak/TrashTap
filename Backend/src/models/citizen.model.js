@@ -19,10 +19,10 @@ const citizenSchema = new Schema(
       index: true,
     },
     fullName: {
-      type: String,
-      required: true,
-      trim: true,
-      index: true,
+        type: String,
+        required: true,
+        trim: true,
+        index: true,
     },
     city: {
       type: String,
@@ -36,8 +36,8 @@ const citizenSchema = new Schema(
       trim: true,
     },
     password: {
-      type: String,
-      required: [true, "Password is required"],
+        type: String,
+        required: [true, "Password is required"],
     },
     otp: {
       type: String, // Storing OTP as a string is best
@@ -46,7 +46,7 @@ const citizenSchema = new Schema(
       type: Date,
     },
     refreshToken: {
-      type: String,
+        type: String,
     },
   },
   { timestamps: true }
