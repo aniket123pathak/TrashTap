@@ -137,6 +137,31 @@ const workerLogin = asyncHandler(async (req, res) => {
         )
 });
 
-const workerLogout = asyncHandler(async (req, res) => {});
+const workerLogout = asyncHandler(async (req, res) => {
+     await Worker.findByIdAndUpdate(
+            req.worker._id,
+            {
+                $set : {
+                    refreshToken : undefined
+                }
+            },
+            {
+                new : true
+            }
+        )
+    
+        const options = {
+            httpOnly : true,
+            secure : true
+        }
+    
+        return res
+        .status(200)
+        .clearCookie("accessToken",options)
+        .clearCookie("refreshToken",options)
+        .json(
+            new apiResponse(200,{},"worker Logged Out Successfully..")
+        )
+});
 
 export { workerRegister, workerLogin, workerLogout };
