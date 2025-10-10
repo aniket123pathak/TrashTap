@@ -19,6 +19,22 @@ import { Worker } from "../models/worker.model.js";
 // --- Server Errors ---
 // 500: Internal Server Error - Server-side issue
 
+const generateAccessAndRefreshToken = async (id) => {
+    try {
+        const worker = await Worker.findById(id)
+
+        const accessToken = worker.generateAccessToken()
+        const refreshToken = worker.generateRefreshToken()
+
+        worker.refreshToken = refreshToken
+
+        await worker.save({validateBeforeSave:true})
+        return { accessToken , refreshToken }
+    } catch (error) {
+        throw new apiError(500,"something went wrong while generating the Access and refresh token")
+    }
+}
+
 const workerRegister = asyncHandler(async (req, res) => {
   const { phoneNumber, employeeId, fullName, city, pincode, password } =
     req.body;
@@ -76,7 +92,50 @@ const workerRegister = asyncHandler(async (req, res) => {
 
 });
 
-const workerLogin = asyncHandler(async (req, res) => {});
+const workerLogin = asyncHandler(async (req, res) => {
+    const{ phoneNumber , employeeId , password} = req.body
+    
+        if(!employeeId && !phoneNumber){
+            throw new apiError(400,"Enter the Phone Number or employeeId..")
+        }
+    
+        const worker = await Worker.findOne({
+            $or:[{employeeId},{phoneNumber}]
+        })
+    
+        if(!worker){
+            throw new apiError(404,"User Not Found..check Credentials or new Register First..")
+        }
+    
+        const isPasswordValid = await worker.isPasswordCorrect(password)
+    
+        if(!isPasswordValid){
+            throw new apiError(400,"Invalid Password")
+        }
+    
+        const { accessToken , refreshToken } = await generateAccessAndRefreshToken(worker._id)
+    
+        const loggedInWorker = await Worker.findById(worker._id).select("-password -refreshToken")
+    
+        const options = {
+            httpOnly : true,
+            secure : true
+        }
+    
+        return res
+        .status(200)
+        .cookie("accessToken",accessToken,options)
+        .cookie("refreshToken",refreshToken,options)
+        .json(
+            new apiResponse(
+                200,
+                {
+                    worker : loggedInWorker , refreshToken , accessToken
+                },
+                "User Logged In successful"
+            )
+        )
+});
 
 const workerLogout = asyncHandler(async (req, res) => {});
 
