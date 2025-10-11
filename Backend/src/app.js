@@ -19,5 +19,6 @@ import { workerRouter } from "./routes/worker.routes.js"
 
 app.use("/api/v1/citizens",citizenRouter)
 app.use("/api/v1/workers",workerRouter)
+app.use("/api/v1/reports",reportRouter)
 
 export { app }
